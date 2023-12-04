@@ -21,7 +21,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<GameStartPage />} />
             <Route path="/about" element={<About />} />
-            <Route path="/shiritori" element={<Shiritori socket={socket} />} />
+            <Route path="/WordRally" element={<WordRally socket={socket} />} />
           </Routes>
         </main>
         <footer>
@@ -45,7 +45,7 @@ const GameStartPage = () => {
 
   useEffect(() => {
     const gameStartListener = (data) => {
-      navigate("/shiritori", { state: { gameId: data.gameId, playerNumber: data.playerNumber } });
+      navigate("/WordRally", { state: { gameId: data.gameId, playerNumber: data.playerNumber } });
     };
 
     socket.on("gameStart", gameStartListener);
@@ -81,7 +81,7 @@ const GameStartPage = () => {
   );
 };
 
-const Shiritori = ({ socket }) => {
+const WordRally = ({ socket }) => {
   const location = useLocation();
   const navigate = useNavigate();
 

@@ -40,7 +40,7 @@ io.on("connection", (socket) => {
                     method: 'GET',
                     url: `https://wordsapiv1.p.rapidapi.com/words/${word}`,
                     headers: {
-                        'X-RapidAPI-Key': 'API_KEY',
+                        'X-RapidAPI-Key': 'c7e49a9786mshe315a346bed1b98p112a86jsn3638b253b15f',
                         'X-RapidAPI-Host': 'wordsapiv1.p.rapidapi.com'
                     }
                 };
