@@ -14,6 +14,7 @@ const App = () => {
             <ul>
               <li><Link to="/">Home</Link></li>
               <li><Link to="/about">About</Link></li>
+              <li><Link to="/history">History</Link></li>
             </ul>
           </nav>
         </header>
@@ -21,7 +22,8 @@ const App = () => {
           <Routes>
             <Route path="/" element={<GameStartPage />} />
             <Route path="/about" element={<About />} />
-            <Route path="/WordRally" element={<WordRally socket={socket} />} />
+            <Route path="/wordrally" element={<WordRally socket={socket} />} />
+            <Route path="/history" />
           </Routes>
         </main>
         <footer>
@@ -45,7 +47,7 @@ const GameStartPage = () => {
 
   useEffect(() => {
     const gameStartListener = (data) => {
-      navigate("/WordRally", { state: { gameId: data.gameId, playerNumber: data.playerNumber } });
+      navigate("/wordrally", { state: { gameId: data.gameId, playerNumber: data.playerNumber } });
     };
 
     socket.on("gameStart", gameStartListener);
