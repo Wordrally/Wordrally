@@ -130,7 +130,6 @@ const WordRally = ({ socket }) => {
     };
 
     const timerUpdateListener = (timers) => {
-      console.log("Received timer update:", timers);
       setPlayerState((prevState) => ({
         ...prevState,
         playerTimer: timers,
@@ -138,7 +137,6 @@ const WordRally = ({ socket }) => {
     };
     
     const turnTimerUpdateListener = (turnTimers) => {
-      console.log("Received turn timer update:", turnTimers);
       setPlayerState((prevState) => ({
         ...prevState,
         turnTimer: turnTimers,
@@ -146,17 +144,18 @@ const WordRally = ({ socket }) => {
     };
 
     const turnEndedListener = (playerNumber) => {
+      console.log("Turn ended for player:", playerNumber, "Next player's turn:", playerNumber);
       setPlayerState(prevState => {
-          const newState = {
-              ...prevState,
-              playerTurn: playerNumber === 1 ? 2 : 1,
-              errorMessage: '',
-              currentWord: '',
-          };
-          console.log("New state after turn end:", newState);
-          return newState;
+        const newState = {
+            ...prevState,
+            playerTurn: playerNumber ? 1 : 2,
+            errorMessage: '',
+            currentWord: '',
+        };
+        console.log("State updated after turn end:", newState);
+        return newState;
       });
-  };
+    };
 
     const timeOutListener = (winnerNumber) => {
       setPlayerState((prevState) => ({
@@ -167,7 +166,6 @@ const WordRally = ({ socket }) => {
     };
 
     socket.on("playerSwitch", playerSwitchListener);
-    socket.on("turnEnded", turnEndedListener);
     socket.on("wordValidated", wordValidatedListener);
     socket.on("wordInvalid", wordInvalidListener);
     socket.on("timerUpdate", timerUpdateListener);
@@ -202,7 +200,9 @@ const WordRally = ({ socket }) => {
     return <div>Game Over. Player {playerState.winner} wins!</div>;
   }
 
-  
+  console.log("Current player state:", playerState);
+  console.log("UI elements should be", playerState.playerTurn !== location.state?.playerNumber ? "disabled" : "enabled");
+
 
   return (
     <div>
