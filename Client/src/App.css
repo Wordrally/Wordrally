@@ -1,0 +1,168 @@
+@import url("https://fonts.googleapis.com/css?family=Montserrat:300,400,500,700");
+@import url("https://fonts.googleapis.com/css?family=Lato:300,400,700");
+@import url("https://fonts.googleapis.com/css?family=Roboto:300,400,500,700");
+
+/* Apply styles globally for the entire app */
+body {
+  font-family: "Roboto", sans-serif;
+  background-color: #4a5e5d;
+  margin: 0;
+  padding: 0;
+  color: black;
+  text-align: center;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.navbar {
+}
+
+.navbar ul {
+  list-style-type: none;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.navbar li {
+  margin: 0 15px;
+}
+
+.navbar a {
+  color: black;
+  text-decoration: none;
+  font-family: "Montserrat", sans-serif;
+  transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+  color: rgb(189, 188, 188);
+}
+
+#Button {
+  background-color: white;
+  color: black;
+  font-family: "Montserrat", sans-serif;
+  font-size: 16px;
+  padding: 10px 20px; /* Adjust padding as needed */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: 1px solid #9d9d9d;
+}
+
+#Button:hover {
+  color: rgb(189, 188, 188);
+  transition: color 0.3s ease;
+}
+
+main {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+footer {
+  background-color: #4a5e5d;
+  text-align: center;
+  padding: 10px;
+  font-family: "Lato", sans-serif;
+}
+
+/* Apply styles matching #wordInputPlayer1 and #wordInputPlayer2 */
+body, .container, header, main, footer, #wordInputPlayer1, #wordInputPlayer2 {
+  width: 100%;
+  padding: 15px;
+  font-size: 28px;
+  border: 1px solid #9d9d9d;
+  border-radius: 10px;
+  resize: none;
+  overflow: hidden;
+  word-break: break-all;
+  font-family: monospace;
+  min-height: 64px;
+  outline: 0;
+  background: 0 0;
+  transition: border-color .15s ease-in-out, border-radius .1s ease-in-out;
+  contain: layout;
+}
+h1{
+  font-size : 94px;
+  padding-bottom:10
+}
+
+body, .container, header, main, footer, #wordInputPlayer1, #wordInputPlayer2 {
+  position: relative;
+}
+
+body, .container, header, main, footer, #wordInputPlayer1, #wordInputPlayer2 {
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  white-space: break-spaces;
+  -webkit-font-variant-ligatures: none;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0;
+}
+
+body:focus, .container:focus, header:focus, main:focus, footer:focus, #wordInputPlayer1:focus, #wordInputPlayer2:focus {
+  border-color: #000;
+}
+
+#wordInputPlayer1, #wordInputPlayer2 { 
+    width: 100%; 
+    padding: 15px; 
+    font-size: 32px; 
+    border: 1px solid #9d9d9d; 
+    border-radius: 10px; 
+    resize: none; 
+    overflow: hidden; 
+    word-break: break-all; 
+    font-family: monospace; 
+    min-height: 64px; 
+    outline: 0; 
+    background: 0 0; 
+    transition: border-color .15s ease-in-out,border-radius .1s ease-in-out; 
+    contain: layout;
+} 
+
+#wordInputPlayer1, #wordInputPlayer2 { 
+    position: relative;
+} 
+
+#wordInputPlayer1, #wordInputPlayer2 { 
+    word-wrap: break-word; 
+    white-space: pre-wrap; 
+    white-space: break-spaces; 
+    -webkit-font-variant-ligatures: none; 
+    font-variant-ligatures: none; 
+    font-feature-settings: "liga" 0;
+} 
+
+#wordInputPlayer1:focus , #wordInputPlayer2:focus { 
+    border-color: #000;
+} 
+
+#wordInputPlayer1:disabled, #wordInputPlayer2:disabled, #Button:disabled{
+  background-color: rgb(243, 243, 243);
+  color:black;
+  transition: background-color 0.3s ease;
+  transition: color 0.3s ease;
+}
+
+*,:after,:before { 
+    box-sizing: border-box; 
+    margin: 0;
+} 
+
+.error-message {
+  color:red
+}
+
+
+
