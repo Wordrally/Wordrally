@@ -14,6 +14,7 @@ const App = () => {
             <ul>
               <li><Link to="/">Home</Link></li>
               <li><Link to="/about">About</Link></li>
+              <li><Link to="/history">History</Link></li>
             </ul>
           </nav>
         </header>
@@ -21,7 +22,8 @@ const App = () => {
           <Routes>
             <Route path="/" element={<GameStartPage />} />
             <Route path="/about" element={<About />} />
-            <Route path="/WordRally" element={<WordRally socket={socket} />} />
+            <Route path="/wordrally" element={<WordRally socket={socket} />} />
+            <Route path="/history" element={<HistoryPage />} />
           </Routes>
         </main>
         <footer>
@@ -45,7 +47,7 @@ const GameStartPage = () => {
 
   useEffect(() => {
     const gameStartListener = (data) => {
-      navigate("/WordRally", { state: { gameId: data.gameId, playerNumber: data.playerNumber } });
+      navigate("/wordrally", { state: { gameId: data.gameId, playerNumber: data.playerNumber } });
     };
 
     socket.on("gameStart", gameStartListener);
@@ -107,11 +109,11 @@ const WordRally = ({ socket }) => {
 
     const playerSwitchListener = (currentPlayer) => {
       setPlayerState(prevState => ({
-          ...prevState,
-          playerTurn: currentPlayer,
-          turnTimer: [10, 10], 
+        ...prevState,
+        playerTurn: currentPlayer,
+        turnTimer: [10, 10],
       }));
-  };
+    };
 
     const wordValidatedListener = (word) => {
       setPlayerState((prevState) => ({
@@ -130,15 +132,13 @@ const WordRally = ({ socket }) => {
     };
 
     const timerUpdateListener = (timers) => {
-      console.log("Received timer update:", timers);
       setPlayerState((prevState) => ({
         ...prevState,
         playerTimer: timers,
       }));
     };
-    
+
     const turnTimerUpdateListener = (turnTimers) => {
-      console.log("Received turn timer update:", turnTimers);
       setPlayerState((prevState) => ({
         ...prevState,
         turnTimer: turnTimers,
@@ -146,17 +146,18 @@ const WordRally = ({ socket }) => {
     };
 
     const turnEndedListener = (playerNumber) => {
+      console.log("Turn ended for player:", playerNumber, "Next player's turn:", playerNumber);
       setPlayerState(prevState => {
-          const newState = {
-              ...prevState,
-              playerTurn: playerNumber === 1 ? 2 : 1,
-              errorMessage: '',
-              currentWord: '',
-          };
-          console.log("New state after turn end:", newState);
-          return newState;
+        const newState = {
+          ...prevState,
+          playerTurn: playerNumber ? 1 : 2,
+          errorMessage: '',
+          currentWord: '',
+        };
+        console.log("State updated after turn end:", newState);
+        return newState;
       });
-  };
+    };
 
     const timeOutListener = (winnerNumber) => {
       setPlayerState((prevState) => ({
@@ -167,7 +168,6 @@ const WordRally = ({ socket }) => {
     };
 
     socket.on("playerSwitch", playerSwitchListener);
-    socket.on("turnEnded", turnEndedListener);
     socket.on("wordValidated", wordValidatedListener);
     socket.on("wordInvalid", wordInvalidListener);
     socket.on("timerUpdate", timerUpdateListener);
@@ -199,10 +199,42 @@ const WordRally = ({ socket }) => {
   };
 
   if (playerState.gameOver) {
-    return <div>Game Over. Player {playerState.winner} wins!</div>;
-  }
+    // Example logic to determine the loserId
+    // This is just a placeholder, you need to replace it with your actual logic
+    const loserId = playerState.winner === 1 ? 2 : 1;
 
-  
+    // Prepare the data to be sent
+    const gameData = {
+        gameId: location.state?.gameId,
+        winnerId: playerState.winner, // Assuming winnerId is stored in playerState.winner
+        loserId: loserId
+    };
+
+    // Send the data to the server
+    fetch('http://localhost:3001/record-game', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(gameData),
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('Game result recorded successfully');
+        } else {
+            console.error('Failed to record game result');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+
+    return <div>Game Over. Player {playerState.winner} wins!</div>;
+}
+
+  console.log("Current player state:", playerState);
+  console.log("UI elements should be", playerState.playerTurn !== location.state?.playerNumber ? "disabled" : "enabled");
+
 
   return (
     <div>
@@ -215,8 +247,8 @@ const WordRally = ({ socket }) => {
           type="text"
           value={playerState.currentWord}
           onChange={(e) => setPlayerState((prevState) => ({ ...prevState, currentWord: e.target.value }))}
-          placeholder={playerState.playerTurn === location.state?.playerNumber && playerState.previousWord.length > 0 
-            ? playerState.previousWord.charAt(playerState.previousWord.length - 1).toUpperCase() 
+          placeholder={playerState.playerTurn === location.state?.playerNumber && playerState.previousWord.length > 0
+            ? playerState.previousWord.charAt(playerState.previousWord.length - 1).toUpperCase()
             : ""}
           autoFocus
           disabled={playerState.playerTurn !== location.state?.playerNumber}
@@ -227,9 +259,36 @@ const WordRally = ({ socket }) => {
         {playerState.errorMessage && <div className="error-message">{playerState.errorMessage}</div>}
       </div>
       <div>Your Time: {playerState.playerTimer[location.state?.playerNumber - 1]} seconds</div>
-<div>Your Turn Time: {playerState.turnTimer[location.state?.playerNumber - 1]} seconds</div>
+      <div>Your Turn Time: {playerState.turnTimer[location.state?.playerNumber - 1]} seconds</div>
     </div>
   );
 };
+
+// HistoryPage component in your React app
+
+const HistoryPage = () => {
+  const [history, setHistory] = useState([]);
+
+  useEffect(() => {
+      fetch('http://localhost:3001/api/history')
+          .then(response => response.json())
+          .then(data => setHistory(data))
+          .catch(error => console.error('Error fetching history:', error));
+  }, []);
+
+  return (
+      <div>
+          <h1>Match History</h1>
+          <ul>
+              {history.map((match, index) => (
+                  <li key={index}>
+                      Game ID: {match.gameId}, Winner ID: {match.winnerId}, Loser ID: {match.loserId}, Date: {match.date}
+                  </li>
+              ))}
+          </ul>
+      </div>
+  );
+};
+
 
 export default App;

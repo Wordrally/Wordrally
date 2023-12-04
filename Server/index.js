@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
 const axios = require("axios");
+const mariaDB = require("./database");
 
 const app = express();
 const server = http.createServer(app);
@@ -10,6 +11,23 @@ const io = socketIo(server);
 const waitingPlayers = [];
 const games = {};
 const socketToGameMap = {};
+
+const { recordGameResult, getMatchHistory  } = require('./database');
+
+const cors = require('cors');
+app.use(cors());
+
+app.get('/api/history', async (req, res) => {
+    try {
+        const history = await getMatchHistory();
+        res.json(history);
+    } catch (error) {
+        console.error('Error fetching match history:', error);
+        res.status(500).send('Error fetching match history');
+    }
+});
+
+app.use(express.json()); // Middleware to parse JSON bodies
 
 io.on("connection", (socket) => {
     socket.on("startGame", () => {
@@ -179,6 +197,17 @@ class Game {
     }
     
 }
+
+app.post('/record-game', async (req, res) => {
+    try {
+        const { gameId, winnerId, loserId } = req.body;
+        await recordGameResult(gameId, winnerId, loserId);
+        res.status(200).send('Game result recorded successfully');
+    } catch (error) {
+        console.error('Error recording game result:', error);
+        res.status(500).send('Error recording game result');
+    }
+});
 
 const PORT = 3001;
 server.listen(PORT, 'localhost', () => {
