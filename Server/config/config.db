@@ -1,0 +1,11 @@
+
+CREATE DATABASE IF NOT EXISTS wordrally_db;
+
+USE wordrally_db;
+
+CREATE TABLE matches (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    winner VARCHAR(255) NOT NULL,
+    loser VARCHAR(255) NOT NULL,
+    match_date DATETIME DEFAULT CURRENT_TIMESTAMP
+);
