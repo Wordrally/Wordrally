@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
 const axios = require("axios");
+const mariaDB = require("./database");
 
 const app = express();
 const server = http.createServer(app);
@@ -11,13 +12,30 @@ const waitingPlayers = [];
 const games = {};
 const socketToGameMap = {};
 
+const { recordGameResult, getMatchHistory } = require('./database');
+
+const cors = require('cors');
+app.use(cors());
+
+app.get('/api/history', async (req, res) => {
+    try {
+        const history = await getMatchHistory();
+        res.json(history);
+    } catch (error) {
+        console.error('Error fetching match history:', error);
+        res.status(500).send('Error fetching match history');
+    }
+});
+
+app.use(express.json()); // Middleware to parse JSON bodies
+
 io.on("connection", (socket) => {
     socket.on("startGame", () => {
         waitingPlayers.push(socket);
         if (waitingPlayers.length === 2) {
             const [player1, player2] = waitingPlayers;
             const gameId = player1.id + player2.id;
-            games[gameId] = new Game(player1, player2, gameId);
+            games[gameId] = new Game(player1, player2, gameId, io);
             socketToGameMap[player1.id] = gameId;
             socketToGameMap[player2.id] = gameId;
             player1.emit("gameStart", { gameId, playerNumber: 1 });
@@ -62,8 +80,17 @@ io.on("connection", (socket) => {
             socket.emit("wordInvalid", "Word already used");
         }
     });
-    
 
+    socket.on('requestHistory', async () => {
+        try {
+            const history = await getMatchHistory();
+            socket.emit('historyData', history);
+        } catch (error) {
+            console.error('Error fetching match history:', error);
+            socket.emit('historyError', 'Error fetching match history');
+        }
+    });
+    
     socket.on("disconnect", () => {
         const gameId = socketToGameMap[socket.id];
         if (gameId && games[gameId]) {
@@ -79,7 +106,7 @@ class Game {
         this.gameId = gameId;
         this.currentTurn = 0;
         this.usedWords = new Set();
-        this.timers = [100, 100];
+        this.timers = [60, 60];
         this.turnTimers = [10, 10];
         this.timeoutIds = [null, null];
         this.turnTimeoutIds = [null, null];
@@ -105,15 +132,30 @@ class Game {
         });
     }
 
-    clearTimer(playerIndex) {
-        const timeoutId = this.timeoutIds[playerIndex];
-        if (timeoutId) {
-            clearInterval(timeoutId);
-            this.timeoutIds[playerIndex] = null;
-            console.log(`Cleared timer for player ${playerIndex + 1}`);
-        }
-    }
 
+    endGame(playerIndexWithTimerZero) {
+        // Stop all timers
+        this.clearTimers();
+
+        // Determine the winner and loser
+        const winningPlayerIndex = playerIndexWithTimerZero === 0 ? 1 : 0;
+        const winnerName = `Player ${winningPlayerIndex + 1}`;
+        const loserName = winningPlayerIndex === 0 ? "Player 2" : "Player 1";
+
+        // Record the game result in the database
+        recordGameResult(winnerName, loserName).then(() => {
+            console.log('Game result recorded successfully');
+            // Notify both players that the game is over
+            io.to(this.gameId).emit("gameOver", winningPlayerIndex);
+        }).catch(error => {
+            console.error('Error recording game result:', error);
+            // Handle any errors, maybe notify players of an issue
+        });
+
+        // Additional clean-up if needed
+        delete games[this.gameId];
+    }
+    
     startTimerForCurrentPlayer() {
         const currentPlayer = this.currentTurn;
         this.clearTimer(currentPlayer);
@@ -125,10 +167,11 @@ class Game {
                 console.log(`Player ${currentPlayer + 1} Timer: ${this.timers[currentPlayer]}`);
                 io.to(this.gameId).emit("timerUpdate", this.timers);
             } else {
-                this.clearTimer(currentPlayer);
+              /*  this.clearTimer(currentPlayer);
                 console.log(`Player ${currentPlayer + 1} Timer expired`);
                 io.to(this.gameId).emit("timeOut", currentPlayer === 0 ? 1 : 2);
-                this.switchPlayer();
+                this.switchPlayer(); */
+                this.endGame(currentPlayer); // Call a function to end the game
             }
         }, 990);
     }
@@ -179,6 +222,17 @@ class Game {
     }
     
 }
+
+app.post('/record-game', async (req, res) => {
+    try {
+        const { winner, loser } = req.body;
+        await recordGameResult(winner, loser);
+        res.status(200).send('Game result recorded successfully');
+    } catch (error) {
+        console.error('Error recording game result:', error);
+        res.status(500).send('Error recording game result');
+    }
+});
 
 const PORT = 3001;
 server.listen(PORT, 'localhost', () => {
