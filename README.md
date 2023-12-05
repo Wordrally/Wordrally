@@ -150,7 +150,16 @@ The game uses MariaDB for recording and retrieving match history.
 WordRally was created by Faisal Balamash and Saad Al-zahrani. Special thanks to the open-source community and libraries used in this project.
 
 ##Screenshots
+- homepage
+![image](https://github.com/Wordrally/Wordrally/assets/98735672/63467bec-cd88-4b44-9691-80c06819d4f7)
+
+- Match 
 ![image](https://github.com/Wordrally/Wordrally/assets/98735672/ecc050bc-5dbc-41b5-b6cb-e68222326054)
+
+-Match history page
 ![image](https://github.com/Wordrally/Wordrally/assets/98735672/537c78b0-d3f4-41e8-9d27-e08258ca7eff)
+
+- about 
+![image](https://github.com/Wordrally/Wordrally/assets/98735672/be6493fd-8019-4f0e-8970-8734fcb05d98)
 
 
