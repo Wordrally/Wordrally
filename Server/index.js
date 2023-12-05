@@ -12,7 +12,7 @@ const waitingPlayers = [];
 const games = {};
 const socketToGameMap = {};
 
-const { recordGameResult, getMatchHistory  } = require('./database');
+const { recordGameResult, getMatchHistory } = require('./database');
 
 const cors = require('cors');
 app.use(cors());
@@ -97,7 +97,7 @@ class Game {
         this.gameId = gameId;
         this.currentTurn = 0;
         this.usedWords = new Set();
-        this.timers = [100, 100];
+        this.timers = [20, 20]; // change it to 100 when finally debugging
         this.turnTimers = [10, 10];
         this.timeoutIds = [null, null];
         this.turnTimeoutIds = [null, null];
@@ -123,14 +123,21 @@ class Game {
         });
     }
 
-    clearTimer(playerIndex) {
-        const timeoutId = this.timeoutIds[playerIndex];
-        if (timeoutId) {
-            clearInterval(timeoutId);
-            this.timeoutIds[playerIndex] = null;
-            console.log(`Cleared timer for player ${playerIndex + 1}`);
-        }
+
+    endGame(playerIndexWithTimerZero) {
+        // Stop all timers
+        this.clearTimers();
+
+        // Determine the winner (the player whose timer didn't hit zero)
+        const winningPlayerIndex = playerIndexWithTimerZero === 0 ? 1 : 0;
+
+        // Emit an event to both players indicating the game is over
+        io.to(this.gameId).emit("gameOver", winningPlayerIndex);
+
+        // Additional clean-up if needed
+        delete games[this.gameId];
     }
+    
 
     startTimerForCurrentPlayer() {
         const currentPlayer = this.currentTurn;
@@ -143,10 +150,11 @@ class Game {
                 console.log(`Player ${currentPlayer + 1} Timer: ${this.timers[currentPlayer]}`);
                 io.to(this.gameId).emit("timerUpdate", this.timers);
             } else {
-                this.clearTimer(currentPlayer);
+              /*  this.clearTimer(currentPlayer);
                 console.log(`Player ${currentPlayer + 1} Timer expired`);
                 io.to(this.gameId).emit("timeOut", currentPlayer === 0 ? 1 : 2);
-                this.switchPlayer();
+                this.switchPlayer(); */
+                this.endGame(currentPlayer); // Call a function to end the game
             }
         }, 990);
     }
@@ -200,8 +208,8 @@ class Game {
 
 app.post('/record-game', async (req, res) => {
     try {
-        const { gameId, winnerId, loserId } = req.body;
-        await recordGameResult(gameId, winnerId, loserId);
+        const { winner, loser } = req.body;
+        await recordGameResult(winner, loser);
         res.status(200).send('Game result recorded successfully');
     } catch (error) {
         console.error('Error recording game result:', error);

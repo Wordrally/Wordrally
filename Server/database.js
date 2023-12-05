@@ -8,12 +8,12 @@ const pool = mariadb.createPool({
    connectionLimit: 5
 });
 
-async function recordGameResult(gameId, winnerId, loserId) {
+async function recordGameResult(winnerId, loserId) {
     let conn;
     try {
       conn = await pool.getConnection();
-      const query = 'INSERT INTO game_results (game_id, winner_id, loser_id, date) VALUES (?, ?, ?, NOW())';
-      await conn.query(query, [gameId, winnerId, loserId]);
+      const query = 'INSERT INTO matches (winner, loser) VALUES (?, ?)';
+      await conn.query(query, [winnerId, loserId]);
     } catch (err) {
       throw err;
     } finally {
@@ -25,7 +25,7 @@ async function getMatchHistory() {
     let conn;
     try {
         conn = await pool.getConnection();
-        const results = await conn.query('SELECT * FROM game_results'); // Adjust query as needed
+        const results = await conn.query('SELECT * FROM matches'); 
         return results;
     } catch (err) {
         throw err;
@@ -35,5 +35,3 @@ async function getMatchHistory() {
 }
 
 module.exports = { recordGameResult, getMatchHistory };
-
- 

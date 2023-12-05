@@ -94,7 +94,7 @@ const WordRally = ({ socket }) => {
     gameOver: false,
     winner: null,
     errorMessage: "",
-    playerTimer: [100, 100],
+    playerTimer: [20, 20], //change it to 100 when finally done
     turnTimer: [10, 10],
   });
 
@@ -167,6 +167,14 @@ const WordRally = ({ socket }) => {
       }));
     };
 
+    const gameOverListener = (winningPlayerIndex) => {
+      setPlayerState(prevState => ({
+          ...prevState,
+          gameOver: true,
+          winner: winningPlayerIndex + 1, // Assuming player indexes are 0 and 1
+      }));
+  };
+    socket.on("gameOver", gameOverListener);
     socket.on("playerSwitch", playerSwitchListener);
     socket.on("wordValidated", wordValidatedListener);
     socket.on("wordInvalid", wordInvalidListener);
@@ -183,7 +191,7 @@ const WordRally = ({ socket }) => {
       socket.off("turnEnded", turnEndedListener);
       socket.off("timeOut", timeOutListener);
       socket.off("playerSwitch", playerSwitchListener);
-
+      socket.off("gameOver", gameOverListener);
     };
   }, [location, navigate, socket]);
 
@@ -199,15 +207,13 @@ const WordRally = ({ socket }) => {
   };
 
   if (playerState.gameOver) {
-    // Example logic to determine the loserId
-    // This is just a placeholder, you need to replace it with your actual logic
-    const loserId = playerState.winner === 1 ? 2 : 1;
+    const winnerName = `Player ${playerState.winner}`;
+    const loserName = playerState.winner === 1 ? "Player 2" : "Player 1";
 
     // Prepare the data to be sent
     const gameData = {
-        gameId: location.state?.gameId,
-        winnerId: playerState.winner, // Assuming winnerId is stored in playerState.winner
-        loserId: loserId
+        winner: winnerName,
+        loser: loserName
     };
 
     // Send the data to the server
@@ -229,7 +235,7 @@ const WordRally = ({ socket }) => {
         console.error('Error:', error);
     });
 
-    return <div>Game Over. Player {playerState.winner} wins!</div>;
+    return <div>Game Over. {winnerName} wins!</div>;
 }
 
   console.log("Current player state:", playerState);
@@ -282,13 +288,14 @@ const HistoryPage = () => {
           <ul>
               {history.map((match, index) => (
                   <li key={index}>
-                      Game ID: {match.gameId}, Winner ID: {match.winnerId}, Loser ID: {match.loserId}, Date: {match.date}
+                      Match ID: {match.id}, Winner: {match.winner}, Loser: {match.loser}
                   </li>
               ))}
           </ul>
       </div>
   );
 };
+
 
 
 export default App;
