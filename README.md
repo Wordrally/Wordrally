@@ -87,7 +87,7 @@ WordRally is a web-based multiplayer game built with React and Socket.IO. The ga
 
   
 
-git clone https://github.com/your-username/wordrally.git
+git clone https://github.com/WordRally/wordrally.git
 
 cd wordrally
 
