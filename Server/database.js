@@ -8,30 +8,29 @@ const pool = mariadb.createPool({
    connectionLimit: 5
 });
 
-async function recordGameResult(winnerId, loserId) {
-    let conn;
-    try {
+async function recordGameResult(winner, loser) {
+  let conn;
+  try {
       conn = await pool.getConnection();
-      const query = 'INSERT INTO matches (winner, loser) VALUES (?, ?)';
-      await conn.query(query, [winnerId, loserId]);
-    } catch (err) {
+      const query = 'INSERT INTO matches (winner, loser, match_date) VALUES (?, ?, NOW())';
+      await conn.query(query, [winner, loser]);
+  } catch (err) {
       throw err;
-    } finally {
+  } finally {
       if (conn) conn.end();
-    }
- }
-
-async function getMatchHistory() {
-    let conn;
-    try {
-        conn = await pool.getConnection();
-        const results = await conn.query('SELECT * FROM matches'); 
-        return results;
-    } catch (err) {
-        throw err;
-    } finally {
-        if (conn) conn.end();
-    }
+  }
 }
 
+ async function getMatchHistory() {
+  let conn;
+  try {
+      conn = await pool.getConnection();
+      const results = await conn.query('SELECT *, DATE_FORMAT(match_date, "%Y-%m-%d %H:%i:%s") AS formatted_date FROM matches');
+      return results;
+  } catch (err) {
+      throw err;
+  } finally {
+      if (conn) conn.end();
+  }
+}
 module.exports = { recordGameResult, getMatchHistory };
