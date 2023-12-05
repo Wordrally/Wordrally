@@ -171,9 +171,10 @@ const WordRally = ({ socket }) => {
       setPlayerState(prevState => ({
           ...prevState,
           gameOver: true,
-          winner: winningPlayerIndex + 1, // Assuming player indexes are 0 and 1
+          winner: winningPlayerIndex + 1,
       }));
   };
+
     socket.on("gameOver", gameOverListener);
     socket.on("playerSwitch", playerSwitchListener);
     socket.on("wordValidated", wordValidatedListener);
@@ -206,36 +207,8 @@ const WordRally = ({ socket }) => {
     }
   };
 
-  if (playerState.gameOver) {
-    const winnerName = `Player ${playerState.winner}`;
-    const loserName = playerState.winner === 1 ? "Player 2" : "Player 1";
-
-    // Prepare the data to be sent
-    const gameData = {
-        winner: winnerName,
-        loser: loserName
-    };
-
-    // Send the data to the server
-    fetch('http://localhost:3001/record-game', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(gameData),
-    })
-    .then(response => {
-        if (response.ok) {
-            console.log('Game result recorded successfully');
-        } else {
-            console.error('Failed to record game result');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-
-    return <div>Game Over. {winnerName} wins!</div>;
+if (playerState.gameOver) {
+    return <div>Game Over. Player {playerState.winner} wins!</div>;
 }
 
   console.log("Current player state:", playerState);
@@ -270,29 +243,41 @@ const WordRally = ({ socket }) => {
   );
 };
 
-// HistoryPage component in your React app
-
 const HistoryPage = () => {
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
-      fetch('http://localhost:3001/api/history')
-          .then(response => response.json())
-          .then(data => setHistory(data))
-          .catch(error => console.error('Error fetching history:', error));
+    // Request match history from the server
+    socket.emit('requestHistory');
+
+    // Listen for the history data from the server
+    socket.on('historyData', (data) => {
+      setHistory(data);
+    });
+
+    // Handle any errors in fetching history
+    socket.on('historyError', (errorMessage) => {
+      console.error(errorMessage);
+    });
+
+    // Cleanup the socket event listeners
+    return () => {
+      socket.off('historyData');
+      socket.off('historyError');
+    };
   }, []);
 
   return (
-      <div>
-          <h1>Match History</h1>
-          <ul>
-              {history.map((match, index) => (
-                  <li key={index}>
-                      Match ID: {match.id}, Winner: {match.winner}, Loser: {match.loser}
-                  </li>
-              ))}
-          </ul>
-      </div>
+    <div>
+      <h1>Match History</h1>
+      <ul>
+        {history.map((match, index) => (
+          <li key={index}>
+            Match ID: {match.id}, Winner: {match.winner}, Loser: {match.loser}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 };
 

@@ -80,8 +80,17 @@ io.on("connection", (socket) => {
             socket.emit("wordInvalid", "Word already used");
         }
     });
-    
 
+    socket.on('requestHistory', async () => {
+        try {
+            const history = await getMatchHistory();
+            socket.emit('historyData', history);
+        } catch (error) {
+            console.error('Error fetching match history:', error);
+            socket.emit('historyError', 'Error fetching match history');
+        }
+    });
+    
     socket.on("disconnect", () => {
         const gameId = socketToGameMap[socket.id];
         if (gameId && games[gameId]) {
@@ -128,17 +137,25 @@ class Game {
         // Stop all timers
         this.clearTimers();
 
-        // Determine the winner (the player whose timer didn't hit zero)
+        // Determine the winner and loser
         const winningPlayerIndex = playerIndexWithTimerZero === 0 ? 1 : 0;
+        const winnerName = `Player ${winningPlayerIndex + 1}`;
+        const loserName = winningPlayerIndex === 0 ? "Player 2" : "Player 1";
 
-        // Emit an event to both players indicating the game is over
-        io.to(this.gameId).emit("gameOver", winningPlayerIndex);
+        // Record the game result in the database
+        recordGameResult(winnerName, loserName).then(() => {
+            console.log('Game result recorded successfully');
+            // Notify both players that the game is over
+            io.to(this.gameId).emit("gameOver", winningPlayerIndex);
+        }).catch(error => {
+            console.error('Error recording game result:', error);
+            // Handle any errors, maybe notify players of an issue
+        });
 
         // Additional clean-up if needed
         delete games[this.gameId];
     }
     
-
     startTimerForCurrentPlayer() {
         const currentPlayer = this.currentTurn;
         this.clearTimer(currentPlayer);
