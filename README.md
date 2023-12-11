@@ -5,7 +5,7 @@
 
 WordRally is a multiplayer word game inspired by the Japanese game "shiritori" with some unique twists.
 
-  
+  [![](./Youtube-Screenshot.png)](https://youtu.be/IvcrJSaIgwo)
 
 ## Table of Contents
 
@@ -167,4 +167,3 @@ WordRally was created by Faisal Balamash and Saad Al-zahrani. Special thanks to 
 
 https://github.com/Wordrally/Wordrally/assets/84572308/2448b2dd-d6a0-49c0-80cb-20671a677600
 
-https://youtu.be/IvcrJSaIgwo
