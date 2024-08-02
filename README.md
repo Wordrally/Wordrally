@@ -147,10 +147,6 @@ The styling is done using CSS, providing a clean and visually appealing interfac
 
 The game uses MariaDB for recording and retrieving match history.
 
-## Acknowledgments
-
-WordRally was created by Faisal Balamash and Saad Al-zahrani. Special thanks to the open-source community and libraries used in this project.
-
 ## Screenshots
 - homepage
 ![image](https://github.com/Wordrally/Wordrally/assets/98735672/63467bec-cd88-4b44-9691-80c06819d4f7)
